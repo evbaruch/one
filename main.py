@@ -1,4 +1,15 @@
-# מבנה שפות תוכנה - תרגיל 1 (מתוקן ו-stateless)
+# מבנה שפות תוכנה - תרגיל 1 
+
+# name: Evyatar Baruch 
+# I.D: 323916403
+
+# name: Sapir Bashan
+# I.D: 214103368
+
+
+
+
+
 
 # 1. Penta Numbers
 def getPentaNum(n):
