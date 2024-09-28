@@ -6,7 +6,9 @@
 # name: Sapir Bashan
 # I.D: 214103368
 
-
+from functools import reduce
+from itertools import chain
+from operator import or_
 
 
 
@@ -24,7 +26,7 @@ def pentaNumRange(n1, n2):
     מחזירה רשימה של Penta Numbers בין n1 ל-n2 (לא כולל n2).
     פונקציה טהורה: משתמשת ב-list comprehension.
     """
-    return [getPentaNum(n) for n in range(n1, n2)]
+    return list(map(getPentaNum, range(n1, n2)))
 
 # 2. סכום ספרות
 def sumDigit(n):
@@ -32,7 +34,7 @@ def sumDigit(n):
     מחשבת את סכום הספרות של מספר שלם.
     פונקציה טהורה: משתמשת ב-sum ו-generator expression.
     """
-    return sum(int(digit) for digit in str(abs(n)))
+    return sum(map(int, str(abs(n))))
 
 # 3. חישוב גימטריה
 def gematria_value(word):
@@ -40,7 +42,7 @@ def gematria_value(word):
     מחשבת את הערך הגימטרי של מילה בעברית.
     פונקציה טהורה: משתמשת במילון קבוע.
     """
-    return sum(get_gematria_dict().get(char, 0) for char in word)
+    return sum(map(lambda char: get_gematria_dict().get(char, 0), word))
 
 def get_gematria_dict():
     """
@@ -56,45 +58,42 @@ def get_gematria_dict():
 
 # 4. Twin Primes
 def is_prime(n):
-  """
-  בודקת אם מספר הוא ראשוני.
-  פונקציה טהורה: התוצאה תלויה רק בקלט n.
-  """
-  if n < 2:
-    return False
-  return all(n % i != 0 for i in range(2, int(n**0.5) + 1))
+    """בודקת אם מספר הוא ראשוני."""
+    return n > 1 and all(map(lambda i: n % i != 0, range(2, int(n**0.5) + 1)))
 
 def find_twin_prime(n):
-    """
-    מוצאת את התאום הראשוני של מספר ראשוני נתון.
-    פונקציה טהורה: התוצאה תלויה רק בקלט n.
-    """
-    if is_prime(n):
-        if is_prime(n - 2):
-            return n - 2
-        elif is_prime(n + 2):
-            return n + 2
-    return None
+    """מוצאת את התאום הראשוני של מספר ראשוני נתון."""
+    return next(filter(lambda x: x is not None, map(lambda t: t if is_prime(t) else None, [n-2, n+2])), None) if is_prime(n) else None
 
 def prime_twins_dict(n):
-    """
-    יוצרת מילון של מספרים ראשוניים והתאומים שלהם עד n.
-    פונקציה טהורה: משתמשת ב-dictionary comprehension.
-    """
-    return {p: find_twin_prime(p) for p in range(2, n+1) if is_prime(p)}
+    """יוצרת מילון של מספרים ראשוניים והתאומים שלהם עד n."""
+    return reduce(
+        lambda acc, p: {**acc, p: twin} if (twin := find_twin_prime(p)) is not None else acc,
+        filter(is_prime, range(2, n+1)),
+        {}
+    )
 
 # 5. Merging Dictionaries (אתגר)
+
 def add3dicts(d1, d2, d3):
     """
     ממזגת שלושה מילונים לפי הכללים שהוגדרו.
     פונקציה טהורה: יוצרת מילון חדש ללא שינוי המילונים המקוריים.
+    ללא שימוש בלולאות for מכל סוג.
     """
-    all_keys = set(d1.keys()) | set(d2.keys()) | set(d3.keys())
-    return {
-        key: tuple(set(d.get(key) for d in (d1, d2, d3) if key in d))
-        for key in all_keys
-    }
-
+    all_keys = reduce(or_, map(set, (d1, d2, d3)))
+    
+    return dict(
+        zip(
+            all_keys,
+            map(
+                lambda k: tuple(set(filter(None, map(lambda d: d.get(k), (d1, d2, d3))))),
+                all_keys
+            )
+        )
+    )
+    
+    
 # 6. Functions as First-Class Objects
 
 def double(x):
@@ -119,7 +118,7 @@ def apply_functions(numbers, functions):
     3. מפעילה את הפונקציות
     """
     return {
-        func.__name__: [func(num) for num in numbers if func(num) is not None]
+        func.__name__: list(filter(None, map(func, numbers)))
         for func in functions
     }
 
